@@ -14,33 +14,20 @@ const COUNTRY_CODES = [
   { value: "+61", label: "Australia (+61)" },
   { value: "+971", label: "UAE (+971)" },
 ];
-const SLOT_TIMES = [
-  "10:00 AM",
-  "10:15 AM",
-  "10:30 AM",
-  "10:45 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "11:45 AM",
-  "12:00 PM",
-  "12:15 PM",
-  "12:30 PM",
-  "1:00 PM",
-  "1:15 PM",
-  "1:30 PM",
-  "1:45 PM",
-  "2:00 PM",
-  "2:30 PM",
-  "2:45 PM",
-  "3:00 PM",
-  "3:15 PM",
-  "3:30 PM",
-  "4:00 PM",
-  "4:15 PM",
-  "4:30 PM",
-  "4:45 PM",
-  "5:00 PM",
-];
+function generateSlotTimes() {
+  const times = [];
+  for (let hour = 10; hour <= 17; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      if (hour === 17 && minute > 0) break;
+      const h = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const m = minute.toString().padStart(2, "0");
+      const ampm = hour >= 12 ? "PM" : "AM";
+      times.push(`${h}:${m} ${ampm}`);
+    }
+  }
+  return times;
+}
+const SLOT_TIMES = generateSlotTimes();
 const TOTAL_DAILY_TOKENS = SLOT_TIMES.length;
 
 function formatDateLabel(date, locale) {
@@ -313,6 +300,9 @@ export function BookingWidget({ lang = "en", phone, calendlyUrl = "" }) {
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [success, setSuccess] = useState(null);
+  const now = new Date();
+  const closingTime = form.date ? new Date(`${form.date}T17:00:00`) : null;
+  const afterHours = closingTime && now > closingTime;
   const [downloading, setDownloading] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -538,7 +528,8 @@ export function BookingWidget({ lang = "en", phone, calendlyUrl = "" }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Build the entry first (same as before)
     const normalizedForm = {
       ...form,
       name: normalizeText(form.name),
@@ -595,7 +586,23 @@ export function BookingWidget({ lang = "en", phone, calendlyUrl = "" }) {
       concern: "",
       slot: SLOT_TIMES.find((slot) => !updated.some((booking) => booking.date === current.date && booking.slot === slot)) ?? "",
     }));
+
+    // ---- Send to backend API ----
+    try {
+      // Replace with your actual Render URL
+      const apiUrl = "https://<YOUR-RENDER-SERVICE>.onrender.com/api/bookings";
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entry),
+      });
+      // We ignore the response – UI already reflects success.
+    } catch (e) {
+      console.error("Failed to persist booking on server:", e);
+      // Optionally surface a non‑blocking warning
+    }
   };
+
 
   const handleDownload = async () => {
     if (!success || !tokenCardRef.current) {
@@ -897,14 +904,26 @@ export function BookingWidget({ lang = "en", phone, calendlyUrl = "" }) {
       ) : null}
 
       <div className="booking-widget-actions">
-        <Button variant="contained" onClick={handleSubmit} disabled={!form.slot || tokensLeft === 0 || downloading}>
-          {labels.book}
-        </Button>
-        {calendlyUrl ? (
-          <Button variant="outlined" href={calendlyUrl} target="_blank" rel="noreferrer">
-            {labels.openCalendly}
+        {tokensLeft > 0 && !afterHours ? (
+          <>
+            <Button variant="contained" onClick={handleSubmit} disabled={!form.slot || downloading}>
+              {labels.book}
+            </Button>
+            {calendlyUrl && (
+              <Button variant="outlined" href={calendlyUrl} target="_blank" rel="noreferrer">
+                {labels.openCalendly}
+              </Button>
+            )}
+          </>
+        ) : (
+          <Button
+            variant="contained"
+            startIcon={<FontAwesomeIcon icon={faPhoneVolume} />}
+            href={`tel:${phone.replace(/\s+/g, "")}`}
+          >
+            Free 1.5‑min Call
           </Button>
-        ) : null}
+        )}
         <Button variant="text" href={`tel:${phone.replace(/\s+/g, "")}`}>
           {labels.callNow}
         </Button>
