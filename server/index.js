@@ -7,6 +7,16 @@ const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN })); // allow your front‑end origin
 app.use(express.json());
 
+// Log incoming booking payload (dev only)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, _res, next) => {
+    if (req.path === '/api/bookings' && req.method === 'POST') {
+      console.log('📥 Received booking payload:', req.body);
+    }
+    next();
+  });
+}
+
 // Create a pool – adjust max connections as needed
 const [dbHost, dbPort] = (process.env.DB_HOST || '').split(':');
 const pool = mysql.createPool({
