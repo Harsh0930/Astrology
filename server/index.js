@@ -8,13 +8,26 @@ app.use(cors({ origin: process.env.CLIENT_ORIGIN })); // allow your front‑end 
 app.use(express.json());
 
 // Create a pool – adjust max connections as needed
+const [dbHost, dbPort] = (process.env.DB_HOST || '').split(':');
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
+  host: dbHost || '127.0.0.1',
+  port: dbPort ? parseInt(dbPort, 10) : process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
+});
+
+// Health-check endpoint
+app.get('/api/health', async (_req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT 1 AS ok');
+    res.json({ status: 'ok', db: rows[0].ok === 1 ? 'connected' : 'error' });
+  } catch (err) {
+    console.error('DB health check failed:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
 });
 
 app.post('/api/bookings', async (req, res) => {
