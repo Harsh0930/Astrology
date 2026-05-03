@@ -1,4 +1,5 @@
-import { Container, Typography } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { Button, Container, Typography } from "@mui/material";
 import { PageHero } from "../components/PageHero";
 import { Seo } from "../seo/Seo";
 import { useSiteLanguage } from "../context/SiteLanguageContext";
@@ -23,9 +24,7 @@ export function RashiPage() {
           <Typography component="h2" variant="h4" className="mb-4 text-white">
             {page.introTitle}
           </Typography>
-          <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">
-            {page.introBody}
-          </Typography>
+          <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">{page.introBody}</Typography>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -62,9 +61,15 @@ export function RashiPage() {
           <Typography component="h2" variant="h4" className="mb-4 text-white">
             {page.outroTitle}
           </Typography>
-          <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">
-            {page.outroBody}
-          </Typography>
+          <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">{page.outroBody}</Typography>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Button component={RouterLink} to={localizePath("/services/astrology")} variant="contained">
+              {content.common.bookThisService}
+            </Button>
+            <Button component={RouterLink} to={localizePath("/contact")} variant="outlined">
+              {content.common.bookConsultation}
+            </Button>
+          </div>
         </div>
       </Container>
     </>

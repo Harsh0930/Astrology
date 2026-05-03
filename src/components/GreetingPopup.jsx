@@ -5,18 +5,17 @@ import { Box, IconButton, Typography } from "@mui/material";
 import { useSiteLanguage } from "../context/SiteLanguageContext";
 
 export function GreetingPopup() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const { content } = useSiteLanguage();
 
   useEffect(() => {
-    if (window.innerWidth < 640 || sessionStorage.getItem("welcome-popup-shown")) {
+    if (sessionStorage.getItem("welcome-popup-shown")) {
+      setOpen(false);
       return undefined;
     }
 
-    const timer = window.setTimeout(() => {
-      setOpen(true);
-      sessionStorage.setItem("welcome-popup-shown", "true");
-    }, 3000);
+    sessionStorage.setItem("welcome-popup-shown", "true");
+    const timer = window.setTimeout(() => setOpen(false), 3000);
 
     return () => window.clearTimeout(timer);
   }, []);
@@ -26,7 +25,7 @@ export function GreetingPopup() {
   }
 
   return (
-    <Box className="greeting-popup-card fixed inset-x-4 bottom-24 z-[60] mx-auto max-w-md rounded-[30px] border border-[var(--gold)]/25 bg-[linear-gradient(160deg,rgba(18,35,31,0.98),rgba(8,17,15,0.96))] p-5 shadow-[0_24px_100px_rgba(0,0,0,0.45)] backdrop-blur sm:bottom-8">
+    <Box className="greeting-popup-card fixed inset-x-4 top-24 z-[60] mx-auto max-w-md rounded-[30px] border border-[var(--gold)]/25 bg-[linear-gradient(160deg,rgba(20,18,52,0.98),rgba(11,12,34,0.96))] p-5 shadow-[0_24px_100px_rgba(0,0,0,0.45)] backdrop-blur sm:top-28">
       <div className="flex items-start justify-between gap-4">
         <div>
           <Typography variant="h5" className="mb-2 text-white">

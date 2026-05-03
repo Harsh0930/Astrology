@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://celestara.in/sitemap.xml
+Sitemap: https://www.chintpurniblessings.com/sitemap.xml

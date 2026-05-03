@@ -15,7 +15,7 @@ import { ToastBar } from "./ToastBar";
 
 export function AppShell() {
   return (
-    <Box className="min-h-screen bg-[var(--bg)] text-white">
+    <Box className="relative min-h-screen bg-[var(--bg)] text-white">
       <ScrollManager />
       <ToastBar />
       <ConstellationBackground />
@@ -27,7 +27,7 @@ export function AppShell() {
       <AiAssistant />
       <AmbientAudioToggle />
       <StickyMobileBar />
-      <main className="overflow-x-clip pb-26 md:pb-0">
+      <main className="relative z-10 overflow-x-clip pb-26 md:pb-0">
         <Outlet />
       </main>
       <Footer />

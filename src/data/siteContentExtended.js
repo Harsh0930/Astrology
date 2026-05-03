@@ -1,0 +1,1 @@
+export { getLocalizedContent } from "./siteContent";

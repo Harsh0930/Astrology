@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 import { useSiteLanguage } from "../context/SiteLanguageContext";
@@ -22,6 +22,10 @@ export function AmbientAudioToggle() {
     };
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("ambient-audio-state", { detail: { enabled } }));
+  }, [enabled]);
+
   const toggleAudio = async () => {
     const audio = audioRef.current;
     if (!audio) {
@@ -42,18 +46,31 @@ export function AmbientAudioToggle() {
     }
   };
 
+  useEffect(() => {
+    const handleToggleRequest = () => {
+      toggleAudio();
+    };
+
+    window.addEventListener("toggle-ambient-audio", handleToggleRequest);
+    return () => window.removeEventListener("toggle-ambient-audio", handleToggleRequest);
+  });
+
   const tooltip = enabled
     ? isHindi ? "ध्वनि बंद करें" : "Mute ambient sound"
     : isHindi ? "ध्वनि चलाएँ" : "Play ambient sound";
 
   return (
-    <Tooltip title={tooltip} placement="left">
-      <IconButton
+    <Tooltip title={tooltip} placement="right">
+      <button
+        type="button"
         onClick={toggleAudio}
-        className="!fixed !bottom-22 !left-3 !z-50 !border !border-white/10 !bg-[rgba(12,14,28,0.84)] !text-white backdrop-blur sm:!bottom-6 sm:!left-4"
+        aria-label={tooltip}
+        className={`desktop-ambient-button ${enabled ? "is-active" : ""}`}
       >
-        <FontAwesomeIcon icon={enabled ? faVolumeHigh : faVolumeXmark} />
-      </IconButton>
+        <span className="desktop-ambient-icon">
+          <FontAwesomeIcon icon={enabled ? faVolumeHigh : faVolumeXmark} />
+        </span>
+      </button>
     </Tooltip>
   );
 }

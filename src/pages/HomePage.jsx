@@ -1,50 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import { Button, Container, Typography } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight, faCheck, faLocationDot, faPhoneVolume, faStar } from "@fortawesome/free-solid-svg-icons";
-import { Button, Chip, Container, MenuItem, TextField, Typography } from "@mui/material";
-import { SectionHeading } from "../components/SectionHeading";
-import { MagneticButton } from "../components/MagneticButton";
-import { Reveal } from "../components/Reveal";
+import {
+  faArrowRight,
+  faCheck,
+  faChevronDown,
+  faChevronUp,
+  faEnvelope,
+  faLocationDot,
+  faPhoneVolume,
+  faQuoteLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { AnimatedCounter } from "../components/AnimatedCounter";
+import { DevotionalGallery } from "../components/DevotionalGallery";
+import { Reveal } from "../components/Reveal";
+import { SectionHeading } from "../components/SectionHeading";
 import { Seo } from "../seo/Seo";
-import { getLivePanchang, getRashiHoroscope } from "../utils/astro";
 import { useSiteLanguage } from "../context/SiteLanguageContext";
-
-function handleSpotlightMove(event) {
-  const rect = event.currentTarget.getBoundingClientRect();
-  event.currentTarget.style.setProperty("--spotlight-x", `${event.clientX - rect.left}px`);
-  event.currentTarget.style.setProperty("--spotlight-y", `${event.clientY - rect.top}px`);
-}
 
 export function HomePage() {
   const { lang, content, localizePath } = useSiteLanguage();
-  const currentHome = content.home;
-  const focusOptions = content.horoscopePage.focuses;
-  const [selectedSign, setSelectedSign] = useState("Aries");
-  const [selectedFocus, setSelectedFocus] = useState(focusOptions[0]);
-  const [activeGuruTopic, setActiveGuruTopic] = useState(currentHome.guruSection.topics[0].key);
-  const [activeAstroTab, setActiveAstroTab] = useState(currentHome.astrologySection.tabs[0].key);
+  const page = content.home;
+  const coreServices = content.services.slice(0, 5);
+  const heroParagraph = page.hero.body[0] ?? "";
+  const [openServiceId, setOpenServiceId] = useState(coreServices[0]?.id ?? "");
 
-  const panchang = useMemo(() => getLivePanchang(new Date(), lang), [lang]);
-  const horoscope = useMemo(() => getRashiHoroscope(selectedSign, selectedFocus, lang), [lang, selectedFocus, selectedSign]);
-  const guruTopic = currentHome.guruSection.topics.find((item) => item.key === activeGuruTopic) ?? currentHome.guruSection.topics[0];
-  const astroTab = currentHome.astrologySection.tabs.find((item) => item.key === activeAstroTab) ?? currentHome.astrologySection.tabs[0];
-  const guruServices = content.services.filter((service) => service.category === "guru");
-  const astrologyServices = content.services.filter((service) => service.category === "astrology");
-
-  useEffect(() => {
-    setSelectedFocus(content.horoscopePage.focuses[0]);
-    setActiveGuruTopic(content.home.guruSection.topics[0].key);
-    setActiveAstroTab(content.home.astrologySection.tabs[0].key);
-  }, [content.home.astrologySection.tabs, content.home.guruSection.topics, content.horoscopePage.focuses, lang]);
-
-  const homeStructuredData = [
+  const structuredData = [
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       inLanguage: lang === "hi" ? "hi-IN" : "en-IN",
-      mainEntity: currentHome.faqs.map((item) => ({
+      mainEntity: page.faqs.map((item) => ({
         "@type": "Question",
         name: item.question,
         acceptedAnswer: {
@@ -58,412 +45,209 @@ export function HomePage() {
   return (
     <>
       <Seo
-        title={currentHome.seo.title}
-        description={currentHome.seo.description}
+        title={page.seo.title}
+        description={page.seo.description}
         path={localizePath("/")}
         basePath="/"
         lang={lang}
-        keywords={currentHome.seo.keywords}
-        structuredData={homeStructuredData}
+        keywords={page.seo.keywords}
+        structuredData={structuredData}
       />
 
-      <Reveal component="section" className="relative overflow-hidden px-4 pb-12 pt-6 sm:pb-16 sm:pt-10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgba(94,165,138,0.16),transparent_26%),radial-gradient(circle_at_84%_8%,rgba(199,154,92,0.18),transparent_24%),linear-gradient(180deg,rgba(8,18,16,0.96),rgba(7,17,15,1))]" />
-        <div className="cosmic-grid pointer-events-none absolute inset-0 opacity-30" />
+      <Reveal component="section" className="relative overflow-hidden px-4 pb-8 pt-6 sm:pb-12 sm:pt-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(212,175,55,0.12),transparent_28%),radial-gradient(circle_at_88%_4%,rgba(143,182,255,0.18),transparent_32%),linear-gradient(180deg,rgba(7,14,27,0.96),rgba(8,16,31,0.98))]" />
+        <div className="cosmic-grid pointer-events-none absolute inset-0 opacity-26" />
         <Container maxWidth="xl" className="relative">
-          <section className="hero-shell">
-            <div className="hero-background-media">
-              <img src="/guru-portrait-1.png" alt="Guru Ji seated in a sacred astrological setting" />
-            </div>
-
-            <div className="hero-layout">
-              <div className="hero-content">
-                <Chip
-                  label={currentHome.heroChip}
-                  className="!max-w-full !border !border-[var(--gold)]/30 !bg-black/25 !text-[var(--gold)]"
-                  variant="outlined"
-                />
-
-                <Typography component="h1" variant="h1" className="font-heading max-w-4xl text-white">
-                  {currentHome.title}
+          <div className="home-hero-shell">
+            <div className="home-hero-grid">
+              <div className="home-hero-copy">
+                <Typography className="editorial-kicker home-hero-kicker">{page.hero.eyebrow}</Typography>
+                <Typography component="h1" variant="h1" className="font-heading max-w-3xl text-white">
+                  {page.hero.title}
+                </Typography>
+                <Typography className="max-w-2xl text-base leading-8 text-[var(--text-soft)] md:text-[1.0625rem]">
+                  {heroParagraph}
                 </Typography>
 
-                <Typography className="max-w-3xl text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8 lg:text-[1.125rem]">
-                  {currentHome.description}
-                </Typography>
-
-                <div className="hero-actions">
-                  <MagneticButton component="a" href="#guru-path" size="large" variant="contained" className="glow-trail">
-                    {currentHome.quickNav.guruButton}
-                  </MagneticButton>
-                  <MagneticButton component="a" href="#astrology-path" size="large" variant="outlined" className="glow-trail">
-                    {currentHome.quickNav.astrologyButton}
-                  </MagneticButton>
+                <div className="info-badge-row">
+                  <div className="info-badge">
+                    <FontAwesomeIcon icon={faPhoneVolume} className="text-[var(--gold)]" />
+                    <span>{content.brand.phone}</span>
+                  </div>
+                  <div className="info-badge">
+                    <FontAwesomeIcon icon={faLocationDot} className="text-[var(--gold)]" />
+                    <span>{content.brand.location}</span>
+                  </div>
                 </div>
 
-                <div className="hero-info-grid">
-                  {content.trustStats.slice(0, 3).map((stat) => (
-                    <div key={stat.label} className="hero-stat-card glass-card content-box-tight rounded-[24px]">
-                      <AnimatedCounter value={stat.value} className="font-heading text-[var(--gold)]" />
-                      <Typography className="mt-2 text-base leading-7 text-[var(--text-soft)]">{stat.label}</Typography>
+                <div className="hero-actions">
+                  <Button component={RouterLink} to={localizePath("/contact")} variant="contained" endIcon={<FontAwesomeIcon icon={faArrowRight} />}>
+                    {page.hero.primaryCta}
+                  </Button>
+                  <Button component={RouterLink} to={localizePath("/services")} variant="outlined">
+                    {page.hero.secondaryCta}
+                  </Button>
+                </div>
+
+                <div className="home-hero-metrics">
+                  {content.trustStats.map((stat) => (
+                    <div key={stat.label} className="metric-card">
+                      <AnimatedCounter value={`${stat.value}+`} className="metric-value" />
+                      <Typography className="mt-2 text-sm leading-6 text-[var(--text-soft)] sm:text-[0.95rem]">{stat.label}</Typography>
                     </div>
                   ))}
                 </div>
-
-                <div className="glass-card content-box rounded-[28px]">
-                  <Typography className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-[var(--gold)] sm:text-sm">
-                    {currentHome.quickNav.eyebrow}
-                  </Typography>
-                  <Typography component="h2" variant="h3" className="font-heading text-white">
-                    {currentHome.quickNav.title}
-                  </Typography>
-                  <Typography className="mt-3 text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">
-                    {currentHome.quickNav.body}
-                  </Typography>
-
-                  <div className="hero-quick-nav mt-5">
-                    <Button component="a" href="#guru-path" variant="outlined">
-                      {content.common.guruSection}
-                    </Button>
-                    <Button component="a" href="#astrology-path" variant="outlined" color="secondary">
-                      {content.common.astrologySection}
-                    </Button>
-                  </div>
-                </div>
               </div>
 
-              <div className="hero-side-panel">
-                <div className="hero-portrait-card glass-card">
-                  <img src="/guru-portrait-4.png" alt="Guru Ji with a sacred astrological halo" />
-                </div>
-
-                <div className="hero-side-grid">
-                  <div className="glass-card content-box rounded-[26px]">
-                    <Typography className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-[var(--gold)]">
-                      {lang === "hi" ? "दैवी उपस्थिति" : "Divine Presence"}
-                    </Typography>
-                    <Typography component="h2" variant="h4" className="font-heading text-white">
-                      {lang === "hi" ? "माता चिंतपूर्णी की कृपा से मार्गदर्शन" : "Guidance Blessed by Maa Chintapurni"}
-                    </Typography>
-                    <Typography className="mt-3 text-base leading-7 text-[var(--text-soft)]">
-                      {lang === "hi"
-                        ? "हीलिंग और ज्योतिष की यह यात्रा भक्ति, संरक्षण और स्पष्ट दिशा के भाव के साथ प्रस्तुत की गई है।"
-                        : "The healing and astrology journey is presented with a devotional, protected, and purposeful presence throughout the experience."}
-                    </Typography>
+              <div className="home-hero-visual">
+                <div className="home-hero-image-card">
+                  <div className="home-hero-image-shell">
+                    <img src="/guru-floral-altar-portrait.png" alt="Guru Ji in a floral devotional altar setting" />
                   </div>
-
-                  <div className="hero-mini-image glass-card">
-                    <img src="/maa-chintpurni.jpg" alt="Maa Chintpurni floral devotional image" />
+                  <div className="home-hero-image-content">
+                    <Typography className="home-hero-label">{page.guruIntro.eyebrow}</Typography>
+                    <Typography component="h2" variant="h4" className="text-white">
+                      {page.guruIntro.title}
+                    </Typography>
+                    <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">
+                      {page.guruIntro.body[0]}
+                    </Typography>
                   </div>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         </Container>
       </Reveal>
 
-      <Reveal id="guru-path" className="section-shell">
+      <Reveal className="section-shell pt-0">
         <Container maxWidth="xl">
-          <div className="box-grid lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="stack-card spotlight-card creative-border glass-card content-box rounded-[32px]" onMouseMove={handleSpotlightMove}>
-              <SectionHeading
-                eyebrow={currentHome.guruSection.eyebrow}
-                title={currentHome.guruSection.title}
-                body={currentHome.guruSection.body}
-                level="h2"
-              />
+          <SectionHeading
+            eyebrow={page.servicesSection.eyebrow}
+            title={page.servicesSection.title}
+            body={page.servicesSection.body}
+            align="center"
+            level="h2"
+          />
+          <div className="core-services-opener-grid mt-8">
+            {coreServices.map((service) => {
+              const isOpen = openServiceId === service.id;
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                {currentHome.guruSection.topics.map((topic) => (
+              return (
+                <article key={service.id} className={`core-service-opener ${isOpen ? "is-open" : ""}`}>
                   <button
-                    key={topic.key}
                     type="button"
-                    onClick={() => setActiveGuruTopic(topic.key)}
-                    className={`expert-toggle rounded-full border px-4 py-2 text-sm transition ${
-                      activeGuruTopic === topic.key
-                        ? "border-[var(--gold)] bg-[rgba(199,154,92,0.14)] text-white"
-                        : "border-white/10 bg-white/5 text-[var(--text-soft)]"
-                    }`}
+                    className="core-service-opener-trigger"
+                    onClick={() => setOpenServiceId((current) => (current === service.id ? "" : service.id))}
+                    aria-expanded={isOpen}
                   >
-                    {topic.label}
+                    <div>
+                      <Typography className="mb-2 text-xs uppercase tracking-[0.12em] text-[var(--gold-soft)]">{service.tag}</Typography>
+                      <Typography component="h3" variant="h5" className="text-left text-white">
+                        {service.title}
+                      </Typography>
+                    </div>
+                    <span className="core-service-opener-icon">
+                      <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} />
+                    </span>
                   </button>
-                ))}
-              </div>
 
-              <div className="mt-6 rounded-[26px] border border-[var(--gold)]/20 bg-[rgba(199,154,92,0.08)] p-5 sm:p-6">
-                <Typography className="mb-2 text-xs uppercase tracking-[0.18em] text-[var(--gold)]">{guruTopic.label}</Typography>
-                <Typography component="h3" variant="h4" className="font-heading text-white">
-                  {guruTopic.title}
-                </Typography>
-                <Typography className="mt-4 text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">
-                  {guruTopic.description}
-                </Typography>
-              </div>
+                  {isOpen ? (
+                    <div className="core-service-opener-body">
+                      <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">{service.blurb}</Typography>
+                      <div className="mt-4 grid gap-3">
+                        {service.benefits.map((benefit) => (
+                          <div key={benefit} className="rounded-[18px] border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-[var(--text-soft)] sm:text-base">
+                            {benefit}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                        <Button component={RouterLink} to={localizePath(service.path)} variant="contained">
+                          {content.common.learnMore}
+                        </Button>
+                        <Button component={RouterLink} to={localizePath("/contact")} variant="outlined">
+                          {content.common.bookThisService}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </Container>
+      </Reveal>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Button component={RouterLink} to={localizePath("/services#black-magic-removal")} variant="contained">
-                  {currentHome.guruSection.primaryCta}
-                </Button>
-                <Button component={RouterLink} to={localizePath("/about#about-guru")} variant="outlined">
-                  {currentHome.guruSection.secondaryCta}
+      <DevotionalGallery />
+
+      <Reveal className="section-shell">
+        <Container maxWidth="xl">
+          <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
+            <div className="editorial-panel">
+              <SectionHeading eyebrow={page.signs.eyebrow} title={page.signs.title} body={page.signs.body} level="h2" />
+              <div className="mt-6">
+                <Button component={RouterLink} to={localizePath("/contact")} variant="contained">
+                  {page.signs.cta}
                 </Button>
               </div>
             </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {page.signs.items.map((item) => (
+                <article key={item} className="stack-card glass-card content-box rounded-[26px]">
+                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--gold)]/25 bg-[rgba(212,175,55,0.1)] text-[var(--gold)]">
+                    <FontAwesomeIcon icon={faCheck} />
+                  </div>
+                  <Typography className="text-base leading-8 text-[var(--text-soft)]">{item}</Typography>
+                </article>
+              ))}
+            </div>
+          </div>
+        </Container>
+      </Reveal>
 
-            <div className="stack-card creative-border glass-card content-box rounded-[32px]">
-              <Typography className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-[var(--gold)]">
-                {currentHome.guruSection.servicesTitle}
-              </Typography>
-              <Typography className="mb-6 text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">
-                {currentHome.guruSection.servicesBody}
-              </Typography>
-
-              <div className="box-grid md:grid-cols-2">
-                {guruServices.map((service) => (
-                  <article key={service.id} className="stack-card spotlight-card interactive-tile rounded-[24px] border border-white/10 bg-white/5 p-5 sm:p-6" onMouseMove={handleSpotlightMove}>
-                    <Typography className="mb-2 text-xs uppercase tracking-[0.18em] text-[var(--gold)]">{service.tag}</Typography>
-                    <Typography component="h3" variant="h5" className="font-heading mb-3 text-white">
-                      {service.title}
-                    </Typography>
-                    <Typography className="text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">{service.blurb}</Typography>
-                    <Button component={RouterLink} to={localizePath(`/services#${service.id}`)} variant="text" sx={{ mt: 2 }}>
-                      {content.common.learnMore}
-                    </Button>
+      <Reveal className="section-shell">
+        <Container maxWidth="xl">
+          <div className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+            <div className="astrology-shift-section astro-modern-border rounded-[32px] border border-white/10 p-5 sm:p-8">
+              <SectionHeading eyebrow={page.trust.eyebrow} title={page.trust.title} level="h2" />
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {page.trust.items.map((item) => (
+                  <article key={item} className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--gold)]/22 bg-[rgba(212,175,55,0.1)] text-[var(--gold)]">
+                      <FontAwesomeIcon icon={faCheck} />
+                    </div>
+                    <Typography className="text-sm leading-7 text-[#dbe6ff] sm:text-base">{item}</Typography>
                   </article>
                 ))}
               </div>
             </div>
-          </div>
-        </Container>
-      </Reveal>
 
-      <Reveal id="astrology-path" className="section-shell">
-        <Container maxWidth="xl">
-          <section className="astrology-shift-section astro-modern-border overflow-hidden rounded-[36px] border border-white/10 p-5 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:p-8" onMouseMove={handleSpotlightMove}>
-            <div className="box-grid lg:grid-cols-[1.02fr_0.98fr]">
-              <div>
-                <SectionHeading
-                  eyebrow={currentHome.astrologySection.eyebrow}
-                  title={currentHome.astrologySection.title}
-                  body={currentHome.astrologySection.body}
-                  level="h2"
-                />
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {currentHome.astrologySection.tabs.map((tab) => (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => setActiveAstroTab(tab.key)}
-                      className={`expert-toggle rounded-full border px-4 py-2 text-sm transition ${
-                        activeAstroTab === tab.key
-                          ? "border-white/40 bg-white text-[#0b1730]"
-                          : "border-white/15 bg-white/5 text-white/75"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+            <div className="glass-card content-box rounded-[32px]">
+              <SectionHeading eyebrow={page.note.eyebrow} title={page.note.title} level="h2" />
+              <div className="mt-6 rounded-[24px] border border-white/10 bg-white/5 p-5 sm:p-6">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--gold)]/25 bg-[rgba(212,175,55,0.12)] text-[var(--gold)]">
+                  <FontAwesomeIcon icon={faQuoteLeft} />
                 </div>
-
-                <div className="tab-panel-animated mt-6 astrology-panel astro-modern-border content-box" onMouseMove={handleSpotlightMove}>
-                  <Typography className="mb-2 text-xs uppercase tracking-[0.18em] text-[#bfd3ff]">{astroTab.label}</Typography>
-                  <Typography component="h3" variant="h4" className="font-heading text-white">
-                    {astroTab.title}
-                  </Typography>
-                  <Typography className="mt-4 text-base leading-7 text-[#d0d9ef] md:text-[1.0625rem] md:leading-8">
-                    {astroTab.body}
-                  </Typography>
-                  <div className="mt-5 box-grid">
-                    {astroTab.bullets.map((bullet) => (
-                      <div key={bullet} className="rounded-[20px] border border-white/10 bg-white/5 px-4 py-3 text-base leading-7 text-[#d0d9ef]">
-                        {bullet}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Button component={RouterLink} to={localizePath(astroTab.ctaTo)} variant="contained" color="secondary">
-                      {astroTab.ctaLabel}
-                    </Button>
-                    <Button component={RouterLink} to={localizePath("/about#about-neeraj")} variant="outlined" color="inherit">
-                      {currentHome.astrologySection.primaryCta}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="box-grid">
-                <div className="astrology-panel astro-modern-border content-box" onMouseMove={handleSpotlightMove}>
-                  <Typography className="mb-4 text-xs font-bold uppercase tracking-[0.24em] text-[#bfd3ff] sm:text-sm">
-                    {lang === "hi" ? "व्यक्तिगत राशिफल स्नैपशॉट" : "Personalised Horoscope Snapshot"}
-                  </Typography>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <TextField
-                      select
-                      label={content.common.selectRashi}
-                      value={selectedSign}
-                      onChange={(event) => setSelectedSign(event.target.value)}
-                    >
-                      {content.zodiacSigns.map((sign) => (
-                        <MenuItem key={sign.name} value={sign.name}>
-                          {sign.vedicName}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    <TextField
-                      select
-                      label={content.common.focus}
-                      value={selectedFocus}
-                      onChange={(event) => setSelectedFocus(event.target.value)}
-                    >
-                      {focusOptions.map((focus) => (
-                        <MenuItem key={focus} value={focus}>
-                          {focus}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </div>
-
-                  <div className="mt-4 rounded-[24px] border border-white/10 bg-white/5 p-5 sm:p-6">
-                    <Typography className="text-sm uppercase tracking-[0.18em] text-[#bfd3ff]">
-                      {selectedSign} {selectedFocus}
-                    </Typography>
-                    <Typography component="h3" variant="h4" className="font-heading mt-2 text-white">
-                      {horoscope.headline}
-                    </Typography>
-                    <Typography className="mt-3 text-base leading-7 text-[#d0d9ef] md:text-[1.0625rem] md:leading-8">
-                      {horoscope.body}
-                    </Typography>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-[18px] border border-white/10 p-3">
-                        <Typography className="text-xs uppercase tracking-[0.16em] text-[#bfd3ff]">{content.common.luckyColor}</Typography>
-                        <Typography className="mt-2 text-white">{horoscope.luckyColor}</Typography>
-                      </div>
-                      <div className="rounded-[18px] border border-white/10 p-3">
-                        <Typography className="text-xs uppercase tracking-[0.16em] text-[#bfd3ff]">{content.common.luckyWindow}</Typography>
-                        <Typography className="mt-2 text-white">{horoscope.luckyWindow}</Typography>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="astrology-panel astro-modern-border content-box" onMouseMove={handleSpotlightMove}>
-                  <Typography className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-[#bfd3ff]">
-                    {lang === "hi" ? "आंतरिक लिंक" : "Internal Links"}
-                  </Typography>
-                  <div className="box-grid">
-                    {astrologyServices.map((service) => (
-                      <RouterLink
-                        key={service.id}
-                        to={localizePath(`/services#${service.id}`)}
-                        className="group rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 no-underline transition hover:border-white/30 hover:bg-white/8"
-                      >
-                        <Typography className="mb-1 text-xs uppercase tracking-[0.16em] text-[#bfd3ff]">{service.tag}</Typography>
-                        <Typography className="flex items-center justify-between gap-3 text-white">
-                          <span>{service.title}</span>
-                          <FontAwesomeIcon icon={faArrowRight} className="text-xs text-[#bfd3ff]" />
-                        </Typography>
-                      </RouterLink>
-                    ))}
-                  </div>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Button component={RouterLink} to={localizePath("/horoscope")} variant="contained" color="secondary">
-                      {content.common.viewHoroscope}
-                    </Button>
-                    <Button component={RouterLink} to={localizePath("/rashi")} variant="outlined" color="inherit">
-                      {content.common.viewRashiGuide}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </Container>
-      </Reveal>
-
-      <Reveal className="section-shell">
-        <Container maxWidth="xl">
-          <div className="box-grid lg:grid-cols-[1.06fr_0.94fr]">
-            <div className="stack-card spotlight-card creative-border glass-card content-box rounded-[28px]" onMouseMove={handleSpotlightMove}>
-              <SectionHeading
-                eyebrow={currentHome.visit.eyebrow}
-                title={currentHome.visit.title}
-                body={currentHome.visit.body}
-                level="h2"
-              />
-              <div className="mt-6 box-grid sm:grid-cols-2">
-                <div className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 text-[var(--text-soft)]">
-                  <div className="mb-2 flex items-center gap-3 text-white">
-                    <span className="text-[var(--gold)]"><FontAwesomeIcon icon={faLocationDot} /></span>
-                    <span>{content.brand.location}</span>
-                  </div>
-                  <span>{content.brand.postalCode}</span>
-                </div>
-                <div className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 text-[var(--text-soft)]">
-                  <div className="mb-2 flex items-center gap-3 text-white">
-                    <span className="text-[var(--gold)]"><FontAwesomeIcon icon={faPhoneVolume} /></span>
-                    <span>{content.brand.phone}</span>
-                  </div>
-                  <span>{content.common.onlineInPerson}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-[24px] border border-white/10 bg-white/5 px-4 py-4">
-                <Typography className="mb-2 text-xs uppercase tracking-[0.18em] text-[var(--gold)]">
-                  {lang === "hi" ? "आज का पंचांग" : "Today’s Panchang"}
-                </Typography>
-                <Typography className="text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">
-                  {`${panchang.dateLabel}. ${lang === "hi" ? "तिथि" : "Tithi"}: ${panchang.tithi}. ${lang === "hi" ? "नक्षत्र" : "Nakshatra"}: ${panchang.nakshatra}. ${lang === "hi" ? "ऊर्जा" : "Energy"}: ${panchang.moonPhase}.`}
-                </Typography>
-              </div>
-            </div>
-
-            <div className="stack-card creative-border glass-card content-box rounded-[28px]">
-              <Typography className="mb-3 text-sm font-bold uppercase tracking-[0.22em] text-[var(--gold)]">
-                {currentHome.cta.eyebrow}
-              </Typography>
-              <Typography component="h2" variant="h3" className="font-heading text-white">
-                {content.brand.tagline}
-              </Typography>
-              <Typography className="mt-4 text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">
-                {currentHome.cta.body}
-              </Typography>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Button component={RouterLink} to={localizePath("/contact")} variant="contained">
-                  {content.common.bookNow}
-                </Button>
-                <Button href={content.brand.whatsapp} variant="outlined">
-                  {content.common.askOnWhatsApp}
-                </Button>
+                <Typography className="text-base leading-8 text-[var(--text-soft)] md:text-[1.0625rem]">{page.note.quote}</Typography>
+                <Typography className="mt-4 text-sm uppercase tracking-[0.18em] text-[var(--gold-soft)]">{page.note.attribution}</Typography>
               </div>
             </div>
           </div>
         </Container>
       </Reveal>
 
-      <Reveal className="section-shell">
+      <Reveal className="section-shell pt-0">
         <Container maxWidth="xl">
-          <SectionHeading
-            eyebrow={currentHome.trust.eyebrow}
-            title={currentHome.trust.title}
-            body={currentHome.trust.body}
-            align="center"
-            level="h2"
-          />
-          <div className="testimonial-scroll mt-8 lg:grid lg:grid-cols-3">
-            {content.testimonials.map((item) => (
-              <div key={item.name} className="stack-card spotlight-card creative-border glass-card content-box rounded-[26px]" onMouseMove={handleSpotlightMove}>
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <Typography component="h3" variant="h6" className="font-heading text-white">
-                    {item.name}
-                  </Typography>
-                  <div className="flex items-center gap-2 text-[var(--gold)]">
-                    <FontAwesomeIcon icon={faStar} />
-                    <span>{item.rating}</span>
-                  </div>
-                </div>
-                <Typography className="text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">{item.text}</Typography>
-              </div>
+          <SectionHeading eyebrow={page.faqSection.eyebrow} title={page.faqSection.title} body={page.faqSection.body} align="center" level="h2" />
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {page.faqs.map((item) => (
+              <article key={item.question} className="stack-card glass-card content-box rounded-[26px]">
+                <Typography component="h3" variant="h5" className="mb-3 text-white">
+                  {item.question}
+                </Typography>
+                <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">{item.answer}</Typography>
+              </article>
             ))}
           </div>
         </Container>
@@ -471,22 +255,47 @@ export function HomePage() {
 
       <Reveal className="section-shell">
         <Container maxWidth="lg">
-          <SectionHeading
-            eyebrow={currentHome.faqSection.eyebrow}
-            title={currentHome.faqSection.title}
-            body={currentHome.faqSection.body}
-            align="center"
-            level="h2"
-          />
-          <div className="mt-8 box-grid md:grid-cols-3">
-            {currentHome.faqs.map((item) => (
-              <article key={item.question} className="stack-card spotlight-card creative-border glass-card content-box rounded-[26px]" onMouseMove={handleSpotlightMove}>
-                <Typography component="h3" variant="h5" className="font-heading mb-3 text-white">
-                  {item.question}
-                </Typography>
-                <Typography className="text-base leading-7 text-[var(--text-soft)] md:text-[1.0625rem] md:leading-8">{item.answer}</Typography>
-              </article>
-            ))}
+          <div className="astrology-shift-section astro-modern-border rounded-[32px] border border-white/10 p-5 sm:p-8">
+            <SectionHeading eyebrow={page.contactStrip.eyebrow} title={page.contactStrip.title} body={page.contactStrip.body} level="h2" />
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+                <div className="mb-4 flex items-start gap-3 text-white">
+                  <span className="pt-1 text-[var(--gold)]"><FontAwesomeIcon icon={faLocationDot} /></span>
+                  <div>
+                    <Typography className="text-sm uppercase tracking-[0.16em] text-[var(--gold-soft)]">{content.common.address}</Typography>
+                    <Typography className="text-sm leading-7 text-[#dbe6ff] sm:text-base">{content.brand.locationLine}</Typography>
+                    <Typography className="text-sm leading-7 text-[#dbe6ff] sm:text-base">{content.brand.fullAddress}</Typography>
+                  </div>
+                </div>
+                <div className="mb-4 flex items-start gap-3 text-white">
+                  <span className="pt-1 text-[var(--gold)]"><FontAwesomeIcon icon={faPhoneVolume} /></span>
+                  <div>
+                    <Typography className="text-sm uppercase tracking-[0.16em] text-[var(--gold-soft)]">{content.common.phoneWhatsapp}</Typography>
+                    <Typography className="text-sm leading-7 text-[#dbe6ff] sm:text-base">{content.brand.phone}</Typography>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 text-white">
+                  <span className="pt-1 text-[var(--gold)]"><FontAwesomeIcon icon={faEnvelope} /></span>
+                  <div>
+                    <Typography className="text-sm uppercase tracking-[0.16em] text-[var(--gold-soft)]">{content.common.email}</Typography>
+                    <Typography className="break-all text-sm leading-7 text-[#dbe6ff] sm:text-base">{content.brand.email}</Typography>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+                <Typography className="mb-3 text-sm uppercase tracking-[0.16em] text-[var(--gold-soft)]">{content.common.hours}</Typography>
+                <Typography className="mb-5 text-sm leading-7 text-[#dbe6ff] sm:text-base">{content.brand.availability}</Typography>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button component={RouterLink} to={localizePath("/contact")} variant="contained">
+                    {content.common.bookConsultation}
+                  </Button>
+                  <Button component={RouterLink} to={localizePath("/services")} variant="outlined" color="inherit">
+                    {content.common.viewAllServices}
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </Container>
       </Reveal>

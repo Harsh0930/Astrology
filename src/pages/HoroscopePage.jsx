@@ -33,15 +33,14 @@ export function HoroscopePage() {
         keywords={page.seo.keywords}
       />
       <PageHero eyebrow={page.hero.eyebrow} title={page.hero.title} description={page.hero.description} />
+
       <Reveal className="section-shell">
         <Container maxWidth="lg">
           <div className="stack-card glass-card content-box rounded-[28px]">
             <Typography component="h2" variant="h3" className="mb-4 text-white">
               {page.introTitle}
             </Typography>
-            <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">
-              {page.introBody}
-            </Typography>
+            <Typography className="text-sm leading-7 text-[var(--text-soft)] sm:text-base">{page.introBody}</Typography>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <TextField select label={content.common.selectPeriod} value={period} onChange={(event) => setPeriod(event.target.value)}>
@@ -104,13 +103,14 @@ export function HoroscopePage() {
             <Typography component="h2" variant="h4" className="text-white">
               {page.ctaTitle}
             </Typography>
-            <Typography className="mt-3 text-sm leading-7 text-[var(--text-soft)] sm:text-base">
-              {page.ctaBody}
-            </Typography>
+            <Typography className="mt-3 text-sm leading-7 text-[var(--text-soft)] sm:text-base">{page.ctaBody}</Typography>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <MagneticButton component={RouterLink} to={localizePath("/contact")} variant="contained" className="glow-trail">
+              <MagneticButton component={RouterLink} to={localizePath("/services/astrology")} variant="contained" className="glow-trail">
                 {page.ctaButton}
               </MagneticButton>
+              <Button component={RouterLink} to={localizePath("/rashi")} variant="outlined">
+                {content.common.viewRashiGuide}
+              </Button>
               <Button variant="outlined" href={content.brand.whatsapp}>
                 {content.common.askOnWhatsApp}
               </Button>

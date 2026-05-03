@@ -47,9 +47,16 @@ export function Seo({
   structuredData = [],
 }) {
   useEffect(() => {
-    const fullTitle = title ? `${title} | ${siteMeta.siteName}` : siteMeta.defaultTitle;
+    const fullTitle = title
+      ? title.includes(siteMeta.siteName)
+        ? title
+        : `${title} | ${siteMeta.siteName}`
+      : siteMeta.defaultTitle;
     const fullDescription = description ?? siteMeta.defaultDescription;
     const url = absoluteUrl(path);
+    const pageLanguage = lang === "hi" ? "hi-IN" : "en-IN";
+    const pageLocale = lang === "hi" ? "hi_IN" : "en_IN";
+    const alternateLocale = lang === "hi" ? "en_IN" : "hi_IN";
 
     document.title = fullTitle;
     document.documentElement.lang = lang;
@@ -65,11 +72,14 @@ export function Seo({
     upsertMeta('meta[property="og:url"]', { property: "og:url", content: url });
     upsertMeta('meta[property="og:site_name"]', { property: "og:site_name", content: siteMeta.siteName });
     upsertMeta('meta[property="og:image"]', { property: "og:image", content: siteMeta.defaultImage });
+    upsertMeta('meta[property="og:locale"]', { property: "og:locale", content: pageLocale });
+    upsertMeta('meta[property="og:locale:alternate"]', { property: "og:locale:alternate", content: alternateLocale });
     upsertMeta('meta[name="twitter:card"]', { name: "twitter:card", content: "summary_large_image" });
     upsertMeta('meta[name="twitter:title"]', { name: "twitter:title", content: fullTitle });
     upsertMeta('meta[name="twitter:description"]', { name: "twitter:description", content: fullDescription });
     upsertMeta('meta[name="twitter:image"]', { name: "twitter:image", content: siteMeta.defaultImage });
-    upsertMeta('meta[name="geo.region"]', { name: "geo.region", content: `${siteMeta.country}-${siteMeta.addressRegion}` });
+    upsertMeta('meta[name="theme-color"]', { name: "theme-color", content: "#08111F" });
+    upsertMeta('meta[name="geo.region"]', { name: "geo.region", content: `${siteMeta.country}-${siteMeta.geoRegionCode}` });
     upsertMeta('meta[name="geo.placename"]', { name: "geo.placename", content: `${siteMeta.addressLocality}, ${siteMeta.addressRegion}` });
     upsertMeta('meta[name="geo.position"]', {
       name: "geo.position",
@@ -102,7 +112,7 @@ export function Seo({
       name: siteMeta.siteName,
       url: siteMeta.baseUrl,
       description: siteMeta.defaultDescription,
-      inLanguage: lang === "hi" ? "hi-IN" : "en-IN",
+      inLanguage: pageLanguage,
     };
 
     const businessSchema = {
@@ -110,13 +120,29 @@ export function Seo({
       "@type": "ProfessionalService",
       name: siteMeta.siteName,
       url: siteMeta.baseUrl,
+      image: siteMeta.defaultImage,
       telephone: siteMeta.phone,
       email: siteMeta.email,
-      areaServed: "India",
+      areaServed: [
+        {
+          "@type": "City",
+          name: siteMeta.addressLocality,
+        },
+        {
+          "@type": "AdministrativeArea",
+          name: siteMeta.addressRegion,
+        },
+        {
+          "@type": "Country",
+          name: "India",
+        },
+      ],
       description: siteMeta.defaultDescription,
-      inLanguage: lang === "hi" ? "hi-IN" : "en-IN",
+      priceRange: siteMeta.priceRange,
+      inLanguage: pageLanguage,
       address: {
         "@type": "PostalAddress",
+        streetAddress: siteMeta.streetAddress,
         addressLocality: siteMeta.addressLocality,
         addressRegion: siteMeta.addressRegion,
         postalCode: siteMeta.postalCode,
@@ -127,12 +153,45 @@ export function Seo({
         latitude: siteMeta.geo.latitude,
         longitude: siteMeta.geo.longitude,
       },
-      sameAs: ["https://instagram.com", "https://wa.me/919876543210"],
+      openingHoursSpecification: siteMeta.openingHours.map((slot) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: slot.days.map((day) => `https://schema.org/${day}`),
+        opens: slot.opens,
+        closes: slot.closes,
+      })),
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        telephone: siteMeta.phone,
+        email: siteMeta.email,
+        availableLanguage: ["English", "Hindi"],
+      },
+      sameAs: siteMeta.sameAs,
+    };
+
+    const webPageSchema = {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: fullTitle,
+      url,
+      description: fullDescription,
+      inLanguage: pageLanguage,
+      isPartOf: {
+        "@type": "WebSite",
+        name: siteMeta.siteName,
+        url: siteMeta.baseUrl,
+      },
+      about: {
+        "@type": "ProfessionalService",
+        name: siteMeta.siteName,
+      },
     };
 
     upsertScript("schema-website", websiteSchema);
     upsertScript("schema-business", businessSchema);
+    upsertScript("schema-webpage", webPageSchema);
 
+    document.head.querySelectorAll('script[id^="schema-page-"]').forEach((tag) => tag.remove());
     structuredData.forEach((item, index) => {
       upsertScript(`schema-page-${index}`, item);
     });

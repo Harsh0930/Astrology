@@ -2,11 +2,11 @@ import { Box, Chip, Typography } from "@mui/material";
 
 export function SectionHeading({ eyebrow, title, body, align = "left", level = "h2" }) {
   return (
-    <Box className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
+    <Box className={`section-heading-shell ${align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-3xl text-left"}`}>
       {eyebrow ? (
         <Chip
           label={eyebrow}
-          className="!mb-3 !border !border-[var(--gold)]/35 !bg-[rgba(199,154,92,0.1)] !text-[0.72rem] !text-[var(--gold)] sm:!mb-4 sm:!text-sm"
+          className="!mb-3 !border !border-[var(--gold)]/28 !bg-[rgba(212,175,55,0.1)] !px-2 !text-[0.75rem] !text-[var(--gold-soft)] sm:!mb-4 sm:!text-sm"
           variant="outlined"
         />
       ) : null}

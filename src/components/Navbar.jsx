@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link as RouterLink, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faGlobe, faOm, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faGlobe, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import {
   AppBar,
   Box,
@@ -12,14 +12,15 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  TextField,
   Toolbar,
-  Typography,
 } from "@mui/material";
 import { useSiteLanguage } from "../context/SiteLanguageContext";
 
 export function Navbar() {
   const [elevated, setElevated] = useState(false);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const { content, localizePath, switchLanguagePath, isHindi } = useSiteLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,36 +37,62 @@ export function Navbar() {
     setOpen(false);
   };
 
+  const searchResults = useMemo(() => {
+    const value = query.trim().toLowerCase();
+
+    if (!value) {
+      return [];
+    }
+
+    const pageMatches = content.navLinks.map((link) => ({
+      label: link.label,
+      to: localizePath(link.to),
+      type: isHindi ? "पेज" : "Page",
+    }));
+
+    const serviceMatches = content.services.map((service) => ({
+      label: service.title,
+      to: localizePath(service.path),
+      type: service.category === "spiritual" ? content.common.serviceCategorySpiritual : content.common.serviceCategoryAstrology,
+    }));
+
+    return [...pageMatches, ...serviceMatches]
+      .filter((item) => item.label.toLowerCase().includes(value))
+      .slice(0, 6);
+  }, [content.common.serviceCategoryAstrology, content.common.serviceCategorySpiritual, content.navLinks, content.services, isHindi, localizePath, query]);
+
+  const handleNavigate = (target) => {
+    navigate(target);
+    setQuery("");
+    setOpen(false);
+  };
+
   return (
     <>
       <AppBar
         position="sticky"
         elevation={0}
-        className={elevated ? "border-b border-white/10 bg-[rgba(8,17,15,0.88)] backdrop-blur-xl" : "bg-transparent"}
+        className={elevated ? "border-b border-white/[0.08] bg-[rgba(8,16,31,0.76)] backdrop-blur-2xl" : "bg-transparent"}
       >
         <Container maxWidth="xl">
-          <Toolbar disableGutters className="min-h-[72px] justify-between gap-3 py-2">
-            <Box component={RouterLink} to={localizePath("/")} className="min-w-0 flex items-center gap-3 no-underline">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--gold)]/40 bg-[radial-gradient(circle_at_top,_rgba(199,154,92,0.36),_rgba(94,165,138,0.08))] sm:h-11 sm:w-11">
-                <FontAwesomeIcon icon={faOm} className="text-[var(--gold)]" />
-              </div>
-              <div className="min-w-0">
-                <Typography variant="h6" className="truncate text-base text-white sm:text-lg">
-                  {content.brand.shortName}
-                </Typography>
-                <Typography variant="caption" className="block truncate text-[var(--text-soft)]">
-                  {content.brand.location}
-                </Typography>
+          <Toolbar disableGutters className="min-h-[78px] justify-between gap-3 py-3">
+            <Box component={RouterLink} to={localizePath("/")} className="rounded-full border border-white/[0.08] bg-white/[0.04] p-2.5 no-underline backdrop-blur">
+              <div className="navbar-logo-ring">
+                <img src="/Chintpurni-blessings-seal.jpeg" alt="Chintpurni Blessings logo" className="navbar-logo-image" />
               </div>
             </Box>
 
-            <Box className="hidden items-center gap-5 md:flex">
+            <Box className="hidden items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-2 backdrop-blur md:flex">
               {content.navLinks.map((link) => (
                 <NavLink
                   key={link.to}
                   to={localizePath(link.to)}
                   className={({ isActive }) =>
-                    `text-sm font-semibold no-underline transition ${isActive || location.pathname === localizePath(link.to) ? "text-[var(--gold)]" : "text-white hover:text-[var(--gold)]"}`
+                    `rounded-full px-3 py-2 text-[0.95rem] font-semibold no-underline transition ${
+                      isActive || location.pathname === localizePath(link.to)
+                        ? "bg-white/8 text-[var(--gold-soft)]"
+                        : "text-white hover:bg-white/6 hover:text-[var(--gold-soft)]"
+                    }`
                   }
                 >
                   {link.label}
@@ -73,19 +100,34 @@ export function Navbar() {
               ))}
             </Box>
 
-            <Box className="hidden items-center gap-3 md:flex">
+            <Box className="relative hidden min-w-0 flex-1 items-center justify-end gap-3 lg:flex">
+              <div className="navbar-search-shell">
+                <FontAwesomeIcon icon={faMagnifyingGlass} className="navbar-search-icon" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={isHindi ? "सेवा या पेज खोजें" : "Search services or pages"}
+                  className="navbar-search-input"
+                  aria-label={isHindi ? "खोजें" : "Search"}
+                />
+                {searchResults.length > 0 ? (
+                  <div className="navbar-search-results">
+                    {searchResults.map((result) => (
+                      <button key={result.to} type="button" className="navbar-search-result" onClick={() => handleNavigate(result.to)}>
+                        <span>{result.label}</span>
+                        <span>{result.type}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
               <Button variant="text" onClick={handleSwitchLanguage} startIcon={<FontAwesomeIcon icon={faGlobe} />}>
                 {content.languageToggle}
               </Button>
-              <Button variant="outlined" href={content.brand.whatsapp}>
-                {content.common.whatsappNow}
-              </Button>
-              <Button component={RouterLink} to={localizePath("/contact")} variant="contained" startIcon={<FontAwesomeIcon icon={faWandMagicSparkles} />}>
-                {content.common.bookConsultation}
-              </Button>
             </Box>
 
-            <IconButton className="md:!hidden" color="inherit" onClick={() => setOpen(true)}>
+            <IconButton className="md:!hidden !border !border-white/10 !bg-white/5" color="inherit" onClick={() => setOpen(true)}>
               <FontAwesomeIcon icon={faBars} />
             </IconButton>
           </Toolbar>
@@ -93,10 +135,36 @@ export function Navbar() {
       </AppBar>
 
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
-        <Box className="h-full w-[280px] bg-[var(--card)] px-4 py-6">
+        <Box className="h-full w-[320px] px-4 py-6">
+          <TextField
+            fullWidth
+            size="small"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={isHindi ? "सेवा या पेज खोजें" : "Search services or pages"}
+            InputProps={{
+              startAdornment: <FontAwesomeIcon icon={faMagnifyingGlass} className="mr-2 text-white/60" />,
+            }}
+          />
+          {searchResults.length > 0 ? (
+            <div className="mt-3 grid gap-2">
+              {searchResults.map((result) => (
+                <button key={`mobile-${result.to}`} type="button" className="navbar-search-result" onClick={() => handleNavigate(result.to)}>
+                  <span>{result.label}</span>
+                  <span>{result.type}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
           <List>
             {content.navLinks.map((link) => (
-              <ListItemButton key={link.to} component={RouterLink} to={localizePath(link.to)} onClick={() => setOpen(false)}>
+              <ListItemButton
+                key={link.to}
+                component={RouterLink}
+                to={localizePath(link.to)}
+                onClick={() => setOpen(false)}
+                className="!mb-2 !rounded-[18px] !border !border-white/[0.08] !bg-white/[0.04]"
+              >
                 <ListItemText primary={link.label} />
               </ListItemButton>
             ))}
@@ -104,9 +172,6 @@ export function Navbar() {
           <div className="mt-4 grid gap-3">
             <Button fullWidth variant="outlined" onClick={handleSwitchLanguage} startIcon={<FontAwesomeIcon icon={faGlobe} />}>
               {content.languageToggle}
-            </Button>
-            <Button fullWidth component={RouterLink} to={localizePath("/contact")} variant="contained" onClick={() => setOpen(false)}>
-              {content.common.bookConsultation}
             </Button>
           </div>
         </Box>

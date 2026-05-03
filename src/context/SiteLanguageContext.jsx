@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { detectLanguageFromPathname, localizePath, stripLanguagePrefix, switchLanguagePath } from "../i18n/config";
-import { getLocalizedContent } from "../data/siteContent";
+import { getLocalizedContent } from "../data/siteContentExtended";
 
 const SiteLanguageContext = createContext(null);
 
