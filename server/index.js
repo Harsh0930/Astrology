@@ -10,7 +10,7 @@ app.use(express.json());
 // Create a pool – adjust max connections as needed
 const [dbHost, dbPort] = (process.env.DB_HOST || '').split(':');
 const pool = mysql.createPool({
-  host: dbHost || '127.0.0.1',
+  host: dbHost || 'auth-db1953.hstgr.io',
   port: dbPort ? parseInt(dbPort, 10) : process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -84,6 +84,19 @@ app.post('/api/bookings', async (req, res) => {
     res.status(500).json({ error: 'Database error' });
   }
 });
+
+// Test DB connection on startup
+async function testDbConnection() {
+  try {
+    const conn = await pool.getConnection();
+    console.log('✓ Database connected successfully');
+    conn.release();
+  } catch (err) {
+    console.error('✗ Database connection failed:', err.message);
+    console.error('  Host:', dbHost, 'Port:', dbPort || 3306);
+  }
+}
+testDbConnection();
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API listening on ${PORT}`));
