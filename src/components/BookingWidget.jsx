@@ -590,7 +590,7 @@ export function BookingWidget({ lang = "en", phone, calendlyUrl = "" }) {
     // ---- Send to backend API ----
     try {
       // Replace with your actual Render URL
-      const apiUrl = "https://<YOUR-RENDER-SERVICE>.onrender.com/api/bookings";
+      const apiUrl = "/api/bookings";
       await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
